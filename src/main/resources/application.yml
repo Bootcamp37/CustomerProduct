@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: customerProduct-service
+  data:
+    mongodb:
+      database: db_customerProduct
+      host: localhost
+      port: 27019
+server:
+  port: 8082
+message:
+  path-customerProductActives: /api/v1/customerActivesProducts
+  path-customerProductPassives: /api/v1/customerPassivesProducts
+  path-customerDomain: localhost:8080
+  path-customerResponse: /api/v1/customers/
+  path-productDomain: localhost:8081
+  path-productResponse: /api/v1/products/
