@@ -6,6 +6,7 @@ import com.nttdata.bootcamp.CustomerProduct.infraestructure.service.ICustomerAct
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @Slf4j
 @RequestMapping("${message.path-customerProductActives}")
+@RefreshScope
 public class CustomerActiveProductController {
     @Autowired
     private ICustomerActiveProductService service;

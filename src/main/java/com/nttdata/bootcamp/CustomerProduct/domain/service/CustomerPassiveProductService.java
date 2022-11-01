@@ -5,7 +5,7 @@ import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerPassiveProductRes
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerResponse;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.ProductResponse;
 import com.nttdata.bootcamp.CustomerProduct.domain.entity.CustomerType;
-import com.nttdata.bootcamp.CustomerProduct.domain.mapper.ICustomerPassiveProductMapper;
+import com.nttdata.bootcamp.CustomerProduct.infraestructure.ICustomerPassiveProductMapper;
 import com.nttdata.bootcamp.CustomerProduct.domain.repository.ServiceRepository;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.repository.ICustomerPassiveProductRepository;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.service.ICustomerPassiveProductService;

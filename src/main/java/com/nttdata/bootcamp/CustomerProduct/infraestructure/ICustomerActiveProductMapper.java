@@ -1,4 +1,4 @@
-package com.nttdata.bootcamp.CustomerProduct.domain.mapper;
+package com.nttdata.bootcamp.CustomerProduct.infraestructure;
 
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerActiveProductRequest;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerActiveProductResponse;

@@ -4,7 +4,7 @@ import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerActiveProductRequ
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerActiveProductResponse;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerResponse;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.ProductResponse;
-import com.nttdata.bootcamp.CustomerProduct.domain.mapper.ICustomerActiveProductMapper;
+import com.nttdata.bootcamp.CustomerProduct.infraestructure.ICustomerActiveProductMapper;
 import com.nttdata.bootcamp.CustomerProduct.domain.repository.ServiceRepository;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.repository.ICustomerActiveProductRepository;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.service.ICustomerActiveProductService;

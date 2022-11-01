@@ -3,6 +3,7 @@ package com.nttdata.bootcamp.CustomerProduct.domain.mapper;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerPassiveProductRequest;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerPassiveProductResponse;
 import com.nttdata.bootcamp.CustomerProduct.domain.entity.CustomerPassiveProduct;
+import com.nttdata.bootcamp.CustomerProduct.infraestructure.ICustomerPassiveProductMapper;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
