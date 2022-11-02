@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,30 +23,36 @@ public class CustomerActiveProductController {
     @Autowired
     private ICustomerActiveProductService service;
 
-    @GetMapping
+    @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public Flux<CustomerActiveProductResponse> getAll() {
         return service.getAll();
     }
 
     @GetMapping(path = "/{id}")
-    public Mono<CustomerActiveProductResponse> getById(@PathVariable String id) {
-        return service.getById(id);
+    @ResponseBody
+    public ResponseEntity<Mono<CustomerActiveProductResponse>> getById(@PathVariable String id) {
+        Mono<CustomerActiveProductResponse> customerActiveProductResponseMono = service.getById(id);
+        return new ResponseEntity<>(customerActiveProductResponseMono, customerActiveProductResponseMono != null ? HttpStatus.OK : HttpStatus.NOT_FOUND);
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Mono<CustomerActiveProductResponse> save(@RequestBody CustomerActiveProductRequest request) {
-        return service.save(request);
+        return service.save(Mono.just(request));
     }
 
     @PutMapping("/update/{id}")
     public Mono<CustomerActiveProductResponse> update(@RequestBody CustomerActiveProductRequest request, @PathVariable String id) {
-        return service.update(request, id);
+        return service.update(Mono.just(request), id);
     }
 
     @DeleteMapping("/delete/{id}")
-    public Mono<CustomerActiveProductResponse> delete(@PathVariable String id) {
-        return service.delete(id);
+    public Mono<ResponseEntity<Void>> delete(@PathVariable String id) {
+        return service.delete(id)
+                .map(r -> ResponseEntity.ok().<Void>build())
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
 }

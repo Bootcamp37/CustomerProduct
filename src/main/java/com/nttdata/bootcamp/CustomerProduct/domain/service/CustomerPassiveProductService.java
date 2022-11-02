@@ -2,11 +2,9 @@ package com.nttdata.bootcamp.CustomerProduct.domain.service;
 
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerPassiveProductRequest;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerPassiveProductResponse;
-import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerResponse;
-import com.nttdata.bootcamp.CustomerProduct.domain.dto.ProductResponse;
 import com.nttdata.bootcamp.CustomerProduct.domain.entity.CustomerType;
-import com.nttdata.bootcamp.CustomerProduct.infraestructure.ICustomerPassiveProductMapper;
 import com.nttdata.bootcamp.CustomerProduct.domain.repository.ServiceRepository;
+import com.nttdata.bootcamp.CustomerProduct.infraestructure.ICustomerPassiveProductMapper;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.repository.ICustomerPassiveProductRepository;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.service.ICustomerPassiveProductService;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 
 @Service
 @RequiredArgsConstructor
@@ -42,33 +39,40 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
     }
 
     @Override
-    public Mono<CustomerPassiveProductResponse> save(CustomerPassiveProductRequest request) {
+    public Mono<CustomerPassiveProductResponse> save(Mono<CustomerPassiveProductRequest> request) {
         // Devuelve si existe el Customer y el Product
-        Mono<Tuple2<CustomerResponse, ProductResponse>> MonoTuple = serviceRepository.getCustomerProduct(request);
-        return MonoTuple.flatMap(f -> {
+        return request.flatMap(serviceRepository::getCustomerProduct)
+                .flatMap(f -> {
                     // Cliente Empresarial
                     if (f.getT1().getCustomerType().equals(CustomerType.BUSINESS)) {
                         log.info("Entramos con un producto pasivo y cliente empresarial");
-                        return repository.save(mapper.toEntity(request)).map(mapper::toResponse);
+                        return request.map(mapper::toEntity)
+                                .flatMap(repository::save)
+                                .map(mapper::toResponse);
                     }
                     // Cliente Personal
                     if (f.getT1().getCustomerType().equals(CustomerType.PERSONAL)) {
                         log.info("Entramos con un producto pasivo y cliente personal");
                         // Recupera si el cliente ya esta registrado con ese tipo de producto
-                        return repository.findAll()
-                                // Filtra las cuentas que tengan al cliente
-                                .filter(response -> response.getCustomerId().equals(request.getCustomerId()))
-                                // Filtra las cuentas que tengan el producto
-                                .filter(response -> response.getProductId().equals(request.getProductId()))
-                                // Devolvemos cuanto queda
-                                .count()
-                                .flatMap(count -> {
-                                    if (count.compareTo(0L) == 0) {
-                                        return repository.save(mapper.toEntity(request)).map(mapper::toResponse);
-                                    }
-                                    log.info("Devolvemos count == " + count);
-                                    return Mono.error(RuntimeException::new);
-                                });
+                        return request.flatMap(
+                                e -> {
+                                    return repository.findAll()
+                                            // Filtra las cuentas que tengan al cliente
+                                            .filter(response -> response.getCustomerId().equals(e.getCustomerId()))
+                                            // Filtra las cuentas que tengan el producto
+                                            .filter(response -> response.getProductId().equals(e.getProductId()))
+                                            // Devolvemos cuanto queda
+                                            .count()
+                                            .flatMap(count -> {
+                                                if (count.compareTo(0L) == 0) {
+                                                    return repository.save(mapper.toEntity(e))
+                                                            .map(mapper::toResponse);
+                                                }
+                                                log.info("Devolvemos count == " + count);
+                                                return Mono.error(RuntimeException::new);
+                                            });
+                                }
+                        );
                     }
                     return Mono.error(RuntimeException::new);
                 })
@@ -76,16 +80,17 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
     }
 
     @Override
-    public Mono<CustomerPassiveProductResponse> update(CustomerPassiveProductRequest request, String id) {
-        Mono<Tuple2<CustomerResponse, ProductResponse>> MonoTuple = serviceRepository.getCustomerProduct(request);
-        return MonoTuple.flatMap(f ->
+    public Mono<CustomerPassiveProductResponse> update(Mono<CustomerPassiveProductRequest> request, String id) {
+        return request.map(serviceRepository::getCustomerProduct)
+                .flatMap(f ->
                         repository.findById(id)
-                                .map(element -> mapper.toEntity(request))
-                                .doOnNext(e -> e.setId(id))
-                                .flatMap(repository::save)
-                                .map(mapper::toResponse)
-                                .switchIfEmpty(Mono.error(RuntimeException::new))
-                )
+                                .flatMap(element ->
+                                        request.map(mapper::toEntity)
+                                                .doOnNext(e -> e.setId(id))
+                                                .flatMap(repository::save)
+                                                .map(mapper::toResponse)
+                                                .switchIfEmpty(Mono.error(RuntimeException::new))
+                                ))
                 .switchIfEmpty(Mono.error(RuntimeException::new));
     }
 

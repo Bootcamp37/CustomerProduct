@@ -2,10 +2,8 @@ package com.nttdata.bootcamp.CustomerProduct.domain.service;
 
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerActiveProductRequest;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerActiveProductResponse;
-import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerResponse;
-import com.nttdata.bootcamp.CustomerProduct.domain.dto.ProductResponse;
-import com.nttdata.bootcamp.CustomerProduct.infraestructure.ICustomerActiveProductMapper;
 import com.nttdata.bootcamp.CustomerProduct.domain.repository.ServiceRepository;
+import com.nttdata.bootcamp.CustomerProduct.infraestructure.ICustomerActiveProductMapper;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.repository.ICustomerActiveProductRepository;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.service.ICustomerActiveProductService;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 
 @Service
 @RequiredArgsConstructor
@@ -41,9 +38,9 @@ public class CustomerActiveProductService implements ICustomerActiveProductServi
     }
 
     @Override
-    public Mono<CustomerActiveProductResponse> save(CustomerActiveProductRequest request) {
-        Mono<Tuple2<CustomerResponse, ProductResponse>> MonoTuple = serviceRepository.getCustomerProduct(request);
-        return MonoTuple.flatMap(f -> Mono.just(request)
+    public Mono<CustomerActiveProductResponse> save(Mono<CustomerActiveProductRequest> request) {
+        return request.flatMap(serviceRepository::getCustomerProduct)
+                .flatMap(f -> request
                         .map(mapper::toEntity)
                         .flatMap(repository::save)
                         .map(mapper::toResponse)
@@ -53,17 +50,16 @@ public class CustomerActiveProductService implements ICustomerActiveProductServi
     }
 
     @Override
-    public Mono<CustomerActiveProductResponse> update(CustomerActiveProductRequest request, String id) {
-        Mono<Tuple2<CustomerResponse, ProductResponse>> MonoTuple = serviceRepository.getCustomerProduct(request);
-        return MonoTuple.flatMap(f ->
-                        repository.findById(id)
-                                .map(element -> mapper.toEntity(request))
-                                .doOnNext(e -> e.setId(id))
-                                .flatMap(repository::save)
-                                .map(mapper::toResponse)
-                                .switchIfEmpty(Mono.error(RuntimeException::new))
-                )
-                .switchIfEmpty(Mono.error(RuntimeException::new));
+    public Mono<CustomerActiveProductResponse> update(Mono<CustomerActiveProductRequest> request, String id) {
+        return request.flatMap(serviceRepository::getCustomerProduct)
+                .flatMap(d -> repository.findById(id)
+                        .flatMap(f ->
+                                request.map(mapper::toEntity)
+                                        .doOnNext(e -> e.setId(id))
+                                        .flatMap(repository::save)
+                                        .map(mapper::toResponse)
+                                        .switchIfEmpty(Mono.error(RuntimeException::new))
+                        )).switchIfEmpty(Mono.error(RuntimeException::new));
     }
 
     @Override
