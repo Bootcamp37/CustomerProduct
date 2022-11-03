@@ -5,6 +5,7 @@ import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerPassiveProductRes
 import com.nttdata.bootcamp.CustomerProduct.domain.entity.CustomerPassiveProduct;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.ICustomerPassiveProductMapper;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -23,29 +24,16 @@ public class CustomerPassiveProductMapper implements ICustomerPassiveProductMapp
     @Override
     public CustomerPassiveProduct toEntity(@NotNull CustomerPassiveProductRequest request) {
         CustomerPassiveProduct customerPassiveProduct = new CustomerPassiveProduct();
-        customerPassiveProduct.setCustomerId(request.getCustomerId());
-        customerPassiveProduct.setProductId(request.getProductId());
-        customerPassiveProduct.setMaintenance(request.getMaintenance());
-        customerPassiveProduct.setMovementLimit(request.getMovementLimit());
-        customerPassiveProduct.setMovementDay(request.getMovementDay());
-        customerPassiveProduct.setMovementMonth(request.getMovementMonth());
-        customerPassiveProduct.setAmount(request.getAmount());
+        BeanUtils.copyProperties(request, customerPassiveProduct);
         return customerPassiveProduct;
     }
 
     @Override
     public CustomerPassiveProductResponse toResponse(@NotNull CustomerPassiveProduct customerPassiveProduct) {
         CustomerPassiveProductResponse customerPassiveProductResponse = new CustomerPassiveProductResponse();
-        customerPassiveProductResponse.setId(customerPassiveProduct.getId());
-        customerPassiveProductResponse.setCustomerId(customerPassiveProduct.getCustomerId());
-        customerPassiveProductResponse.setProductId(customerPassiveProduct.getProductId());
-        customerPassiveProductResponse.setMaintenance(customerPassiveProduct.getMaintenance());
-        customerPassiveProductResponse.setMovementLimit(customerPassiveProduct.getMovementLimit());
-        customerPassiveProductResponse.setMovementDay(customerPassiveProduct.getMovementDay());
-        customerPassiveProductResponse.setMovementMonth(customerPassiveProduct.getMovementMonth());
+        BeanUtils.copyProperties(customerPassiveProduct, customerPassiveProductResponse);
         customerPassiveProductResponse.setCustomerUrl(customerDomain + customerPath + customerPassiveProduct.getCustomerId());
         customerPassiveProductResponse.setProductUrl(productDomain + productPath + customerPassiveProduct.getProductId());
-        customerPassiveProductResponse.setAmount(customerPassiveProduct.getAmount());
         return customerPassiveProductResponse;
     }
 }

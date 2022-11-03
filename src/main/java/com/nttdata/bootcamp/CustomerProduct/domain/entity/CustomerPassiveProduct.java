@@ -20,4 +20,6 @@ public class CustomerPassiveProduct {
     private Integer movementDay;
     private Integer movementMonth;
     private Double amount;
+    private int maxMovementFree;
+    private Double commission;
 }

@@ -3,6 +3,7 @@ package com.nttdata.bootcamp.CustomerProduct.domain.service;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerActiveProductRequest;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerActiveProductResponse;
 import com.nttdata.bootcamp.CustomerProduct.domain.repository.ServiceRepository;
+import com.nttdata.bootcamp.CustomerProduct.domain.util.Tool;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.ICustomerActiveProductMapper;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.repository.ICustomerActiveProductRepository;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.service.ICustomerActiveProductService;
@@ -39,7 +40,9 @@ public class CustomerActiveProductService implements ICustomerActiveProductServi
 
     @Override
     public Mono<CustomerActiveProductResponse> save(Mono<CustomerActiveProductRequest> request) {
+        log.info("Ingreso al metodo save");
         return request.flatMap(serviceRepository::getCustomerProduct)
+                .map(Tool::printLog)
                 .flatMap(f -> request
                         .map(mapper::toEntity)
                         .flatMap(repository::save)
