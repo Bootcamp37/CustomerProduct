@@ -27,12 +27,14 @@ public class CustomerActiveProductController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public Flux<CustomerActiveProductResponse> getAll() {
+        log.debug("====> CustomerActiveProductController: GetAll");
         return service.getAll();
     }
 
     @GetMapping(path = "/{id}")
     @ResponseBody
     public ResponseEntity<Mono<CustomerActiveProductResponse>> getById(@PathVariable String id) {
+        log.debug("====> CustomerActiveProductController: GetById");
         Mono<CustomerActiveProductResponse> customerActiveProductResponseMono = service.getById(id);
         return new ResponseEntity<>(customerActiveProductResponseMono, customerActiveProductResponseMono != null ? HttpStatus.OK : HttpStatus.NOT_FOUND);
     }
@@ -40,16 +42,19 @@ public class CustomerActiveProductController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<CustomerActiveProductResponse> save(@RequestBody CustomerActiveProductRequest request) {
+        log.debug("====> CustomerActiveProductController: Save");
         return service.save(Mono.just(request));
     }
 
     @PutMapping("/update/{id}")
     public Mono<CustomerActiveProductResponse> update(@RequestBody CustomerActiveProductRequest request, @PathVariable String id) {
+        log.debug("====> CustomerActiveProductController: Update");
         return service.update(Mono.just(request), id);
     }
 
     @DeleteMapping("/delete/{id}")
     public Mono<ResponseEntity<Void>> delete(@PathVariable String id) {
+        log.debug("====> CustomerActiveProductController: Delete");
         return service.delete(id)
                 .map(r -> ResponseEntity.ok().<Void>build())
                 .defaultIfEmpty(ResponseEntity.notFound().build());

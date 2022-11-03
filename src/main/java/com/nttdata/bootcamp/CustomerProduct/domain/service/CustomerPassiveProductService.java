@@ -28,12 +28,14 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
 
     @Override
     public Flux<CustomerPassiveProductResponse> getAll() {
+        log.debug("====> CustomerPassiveProductService: GetAll");
         return repository.findAll()
                 .map(mapper::toResponse);
     }
 
     @Override
     public Mono<CustomerPassiveProductResponse> getById(String id) {
+        log.debug("====> CustomerPassiveProductService: GetById");
         return repository.findById(id)
                 .map(mapper::toResponse)
                 .switchIfEmpty(Mono.error(RuntimeException::new));
@@ -41,28 +43,28 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
 
     @Override
     public Mono<CustomerPassiveProductResponse> save(Mono<CustomerPassiveProductRequest> request) {
-        // Devuelve si existe el Customer y el Product
-        return request.flatMap(serviceRepository::getCustomerProduct)
+        log.debug("====> CustomerPassiveProductService: Save");
+        return request.map(this::printDebug)
+                .flatMap(serviceRepository::getCustomerProduct)
                 .flatMap(f -> {
                     // Cliente Empresarial
                     if (f.getT1().getCustomerType().equals(CustomerType.BUSINESS)) {
-                        if(f.getT1().getSubType().equals(CustomerSubType.PYME))
-                        {
+                        if (f.getT1().getSubType().equals(CustomerSubType.PYME)) {
                             // Vaidar que tenga una tarjeta de credito con el banco
                             // Cuenta corriente sin comisión de mantenimiento
-                        }else{
-                        log.info("Entramos con un producto pasivo y cliente empresarial");
-                        return request.map(mapper::toEntity)
-                                .flatMap(repository::save)
-                                .map(mapper::toResponse);
+                        } else {
+                            log.info("Entramos con un producto pasivo y cliente empresarial");
+                            return request.map(mapper::toEntity)
+                                    .flatMap(repository::save)
+                                    .map(mapper::toResponse);
                         }
                     }
                     // Cliente Personal
                     if (f.getT1().getCustomerType().equals(CustomerType.PERSONAL)) {
-                        if(f.getT1().getSubType().equals(CustomerSubType.VIP)){
+                        if (f.getT1().getSubType().equals(CustomerSubType.VIP)) {
                             // Debe tener una tarjeta de credito
                             // cuenta de ahorro con monto minimo de promedio cada mes
-                        }else{
+                        } else {
                             log.info("Entramos con un producto pasivo y cliente personal");
                             // Recupera si el cliente ya esta registrado con ese tipo de producto
                             return request.flatMap(
@@ -94,24 +96,34 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
 
     @Override
     public Mono<CustomerPassiveProductResponse> update(Mono<CustomerPassiveProductRequest> request, String id) {
-        return request.map(serviceRepository::getCustomerProduct)
-                .flatMap(f ->
+        log.debug("====> CustomerPassiveProductService: Update");
+        return request.map(this::printDebug)
+                .map(serviceRepository::getCustomerProduct)
+                .flatMap(item ->
                         repository.findById(id)
-                                .flatMap(element ->
-                                        request.map(mapper::toEntity)
-                                                .doOnNext(e -> e.setId(id))
-                                                .flatMap(repository::save)
-                                                .map(mapper::toResponse)
-                                                .switchIfEmpty(Mono.error(RuntimeException::new))
-                                ))
+                                .switchIfEmpty(Mono.error(RuntimeException::new))
+                                .map(e -> item)
+                )
+                .flatMap(element -> request)
+                .map(mapper::toEntity)
+                .doOnNext(e -> e.setId(id))
+                .flatMap(repository::save)
+                .map(mapper::toResponse)
                 .switchIfEmpty(Mono.error(RuntimeException::new));
     }
 
     @Override
     public Mono<CustomerPassiveProductResponse> delete(String id) {
+        log.debug("====> CustomerPassiveProductService: Delete");
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(RuntimeException::new))
                 .flatMap(deleteCustomerPassiveProduct -> repository.delete(deleteCustomerPassiveProduct)
                         .then(Mono.just(mapper.toResponse(deleteCustomerPassiveProduct))));
+    }
+
+    public CustomerPassiveProductRequest printDebug(CustomerPassiveProductRequest request) {
+        log.debug("====> CustomerPassiveProductService: printDebug");
+        log.debug("====> CustomerPassiveProductService: Request ==> " + request.toString());
+        return request;
     }
 }

@@ -4,6 +4,7 @@ import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerPassiveProductReq
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerPassiveProductResponse;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.service.ICustomerPassiveProductService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("${message.path-customerProductPassives}")
 @RefreshScope
+@Slf4j
 public class CustomerPassiveProductController {
     @Autowired
     private ICustomerPassiveProductService service;
@@ -25,12 +27,14 @@ public class CustomerPassiveProductController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public Flux<CustomerPassiveProductResponse> getAll() {
+        log.debug("====> CustomerPassiveProductController: GetAll");
         return service.getAll();
     }
 
     @GetMapping(path = "/{id}")
     @ResponseBody
     public ResponseEntity<Mono<CustomerPassiveProductResponse>> getById(@PathVariable String id) {
+        log.debug("====> CustomerPassiveProductController: GetById");
         Mono<CustomerPassiveProductResponse> customerPassiveProductResponse = service.getById(id);
         return new ResponseEntity<>(customerPassiveProductResponse, customerPassiveProductResponse != null ? HttpStatus.OK : HttpStatus.NOT_FOUND);
     }
@@ -38,16 +42,19 @@ public class CustomerPassiveProductController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<CustomerPassiveProductResponse> save(@RequestBody CustomerPassiveProductRequest request) {
+        log.debug("====> CustomerPassiveProductController: Save");
         return service.save(Mono.just(request));
     }
 
     @PutMapping("/update/{id}")
     public Mono<CustomerPassiveProductResponse> update(@RequestBody CustomerPassiveProductRequest request, @PathVariable String id) {
+        log.debug("====> CustomerPassiveProductController: Update");
         return service.update(Mono.just(request), id);
     }
 
     @DeleteMapping("/delete/{id}")
     public Mono<ResponseEntity<Void>> delete(@PathVariable String id) {
+        log.debug("====> CustomerPassiveProductController: Delete");
         return service.delete(id)
                 .map(r -> ResponseEntity.ok().<Void>build())
                 .defaultIfEmpty(ResponseEntity.notFound().build());

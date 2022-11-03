@@ -7,7 +7,7 @@ import reactor.util.function.Tuple2;
 
 @Slf4j
 public class Tool {
-    public static Tuple2<CustomerResponse, ProductResponse> printLog(Tuple2<CustomerResponse, ProductResponse> tupla){
+    public static Tuple2<CustomerResponse, ProductResponse> printLog(Tuple2<CustomerResponse, ProductResponse> tupla) {
         log.info("Resultado del Get = " + tupla.getT1().toString() + " - " + tupla.getT2().toString());
         return tupla;
     }

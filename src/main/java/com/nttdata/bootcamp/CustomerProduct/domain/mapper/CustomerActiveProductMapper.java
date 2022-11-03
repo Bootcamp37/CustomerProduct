@@ -4,11 +4,14 @@ import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerActiveProductRequ
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerActiveProductResponse;
 import com.nttdata.bootcamp.CustomerProduct.domain.entity.CustomerActiveProduct;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.ICustomerActiveProductMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class CustomerActiveProductMapper implements ICustomerActiveProductMapper {
     @Value("${message.path-customerDomain}")
     String customerDomain;
@@ -22,22 +25,17 @@ public class CustomerActiveProductMapper implements ICustomerActiveProductMapper
 
     @Override
     public CustomerActiveProduct toEntity(@NotNull CustomerActiveProductRequest request) {
+        log.debug("====> CustomerActiveProductMapper: ToEntity");
         CustomerActiveProduct customerActiveProduct = new CustomerActiveProduct();
-        customerActiveProduct.setCustomerId(request.getCustomerId());
-        customerActiveProduct.setProductId(request.getProductId());
-        customerActiveProduct.setLineOfCredit(request.getLineOfCredit());
-        customerActiveProduct.setDebt(request.getDebt());
+        BeanUtils.copyProperties(request, customerActiveProduct);
         return customerActiveProduct;
     }
 
     @Override
     public CustomerActiveProductResponse toResponse(@NotNull CustomerActiveProduct customerActiveProduct) {
+        log.debug("====> CustomerActiveProductMapper: ToResponse");
         CustomerActiveProductResponse customerActiveProductResponse = new CustomerActiveProductResponse();
-        customerActiveProductResponse.setId(customerActiveProduct.getId());
-        customerActiveProductResponse.setCustomerId(customerActiveProduct.getCustomerId());
-        customerActiveProductResponse.setProductId(customerActiveProduct.getProductId());
-        customerActiveProductResponse.setLineOfCredit(customerActiveProduct.getLineOfCredit());
-        customerActiveProductResponse.setDebt(customerActiveProduct.getDebt());
+        BeanUtils.copyProperties(customerActiveProduct, customerActiveProductResponse);
         customerActiveProductResponse.setCustomerUrl(customerDomain + customerPath + customerActiveProduct.getCustomerId());
         customerActiveProductResponse.setProductUrl(productDomain + productPath + customerActiveProduct.getProductId());
         return customerActiveProductResponse;

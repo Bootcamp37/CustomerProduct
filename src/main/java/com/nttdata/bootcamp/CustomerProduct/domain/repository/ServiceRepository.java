@@ -22,14 +22,14 @@ public class ServiceRepository {
     private final ProductRepository productRepository;
 
     public Mono<Tuple2<CustomerResponse, ProductResponse>> get(CustomerProductRequest request, ProductType productType) {
-        log.info("Ingreso a Get");
+        log.debug("====> ProductRepository: Get");
         return customerRepository.getById(request.getCustomerId())
                 .zipWith(productRepository.getById(request.getProductId()))
                 .filter(tupla -> tupla.getT2().getProductType().equals(productType));
     }
 
     public Mono<Tuple2<CustomerResponse, ProductResponse>> getCustomerProduct(CustomerActiveProductRequest request) {
-        log.info("Ingreso a GetCustomerProduct(CustomerActiveProductRequest)");
+        log.debug("====> ProductRepository: GetCustomerProduct 1");
         return get(request, ProductType.ACTIVE)
                 .map(Tool::printLog)
                 // Filtra que el customer cuadre con el producto
@@ -38,7 +38,7 @@ public class ServiceRepository {
     }
 
     public Mono<Tuple2<CustomerResponse, ProductResponse>> getCustomerProduct(CustomerPassiveProductRequest request) {
-        log.info("Ingreso a GetCustomerProduct(CustomerPassiveProductRequest)");
+        log.debug("====> ProductRepository: GetCustomerProduct 2");
         return get(request, ProductType.PASSIVE)
                 .map(Tool::printLog)
                 // Filtra que el customer cuadre con el producto
