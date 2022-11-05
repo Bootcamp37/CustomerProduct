@@ -46,7 +46,18 @@ public class CustomerActiveProductService implements ICustomerActiveProductServi
         return request.map(this::printDebug)
                 .flatMap(serviceRepository::getCustomerProduct)
                 .map(Tool::printLog)
-                .flatMap(f -> request)
+                .flatMap(e ->
+                        repository.findAll()
+                                .filter(response -> response.getCustomerId().equals(e.getT1().getId()))
+                                .filter(response -> response.getProductId().equals(e.getT2().getId()))
+                                .count()
+                )
+                .flatMap(count -> {
+                    if (count.compareTo(0L) == 0) {
+                        return request;
+                    }
+                    return Mono.error(RuntimeException::new);
+                })
                 .map(mapper::toEntity)
                 .flatMap(repository::save)
                 .map(mapper::toResponse)

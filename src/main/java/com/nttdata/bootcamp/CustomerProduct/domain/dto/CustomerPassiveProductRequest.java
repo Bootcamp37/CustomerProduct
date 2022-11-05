@@ -8,11 +8,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CustomerPassiveProductRequest extends CustomerProductRequest {
-    private Double maintenance;
-    private Integer movementLimit;
-    private Integer movementDay;
-    private Integer movementMonth;
-    private Double amount;
-    private int maxMovementFree;
-    private Double commission;
+    private Double maintenance = 0.0;
+    private Integer movementLimit = 0;
+    private Integer movementDay = 0;
+    private Double amount = 0.0;
+    private int maxMovementFree = 0;
+    private Double commission = 0.0;
+    private Double minAmount = 0.0;
 }

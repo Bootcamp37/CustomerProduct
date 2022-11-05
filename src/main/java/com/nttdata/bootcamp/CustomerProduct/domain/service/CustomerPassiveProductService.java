@@ -2,10 +2,15 @@ package com.nttdata.bootcamp.CustomerProduct.domain.service;
 
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerPassiveProductRequest;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerPassiveProductResponse;
+import com.nttdata.bootcamp.CustomerProduct.domain.dto.PassiveProductFactory;
+import com.nttdata.bootcamp.CustomerProduct.domain.entity.CustomerPassiveProduct;
 import com.nttdata.bootcamp.CustomerProduct.domain.entity.CustomerSubType;
 import com.nttdata.bootcamp.CustomerProduct.domain.entity.CustomerType;
+import com.nttdata.bootcamp.CustomerProduct.domain.entity.ProductSubType;
+import com.nttdata.bootcamp.CustomerProduct.domain.repository.ProductRepository;
 import com.nttdata.bootcamp.CustomerProduct.domain.repository.ServiceRepository;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.ICustomerPassiveProductMapper;
+import com.nttdata.bootcamp.CustomerProduct.infraestructure.repository.ICustomerActiveProductRepository;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.repository.ICustomerPassiveProductRepository;
 import com.nttdata.bootcamp.CustomerProduct.infraestructure.service.ICustomerPassiveProductService;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +29,13 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
     @Autowired
     private final ICustomerPassiveProductRepository repository;
     @Autowired
+    private final ICustomerActiveProductRepository activeRepository;
+    @Autowired
     private final ICustomerPassiveProductMapper mapper;
     @Autowired
     private final ServiceRepository serviceRepository;
+    @Autowired
+    private final ProductRepository productRepository;
 
     @Override
     public Flux<CustomerPassiveProductResponse> getAll() {
@@ -47,68 +56,67 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
     public Mono<CustomerPassiveProductResponse> save(Mono<CustomerPassiveProductRequest> request) {
         log.info("====> CustomerPassiveProductService: Save");
         return request.map(this::printDebug)
+                // Retornamos la tupla Customer|Product
                 .flatMap(serviceRepository::getCustomerProduct)
                 .flatMap(f -> {
-                    // Cliente Empresarial
+                    // SI CUSTOMER ES BUSINESS
                     if (f.getT1().getCustomerType().equals(CustomerType.BUSINESS)) {
+                        // SI NO SOLICITA UNA CUENTA CORRIENTE
+                        if (!f.getT2().getProductSubType().equals(ProductSubType.CURRENT)) {
+                            return Mono.error(RuntimeException::new);
+                        }
+                        // SI SOLICITA UNA CUENTA CORRIENTE
+                        // SI CUSTOMER NO ES PYME
                         if (Objects.isNull(f.getT1().getSubType())) {
-                            log.info("Entramos con un producto pasivo y cliente empresarial");
-                            return request.map(mapper::toEntity)
+                            log.info("Entramos con un producto pasivo y cliente empresarial no pyme");
+                            return request.map(e -> PassiveProductFactory.build(e, f.getT2().getProductSubType()))
                                     .flatMap(repository::save)
                                     .map(mapper::toResponse);
                         }
+                        // SINO, SI EL CUSTOMER ES PYME
                         else if (f.getT1().getSubType().equals(CustomerSubType.PYME)) {
-                            // Vaidar que tenga una tarjeta de credito con el banco
-                            // Cuenta corriente sin comisión de mantenimiento
-                        }
-
-                    }
-                    // Cliente Personal
-                    if (f.getT1().getCustomerType().equals(CustomerType.PERSONAL)) {
-                        if(Objects.isNull(f.getT1().getSubType())) {
-                            log.info("Entramos con un producto pasivo y cliente personal");
-                            return request.flatMap(
-                                    e -> {
-                                        var a1 = repository.findAll();
-                                        var f1 = a1.map(ff1 -> {
-                                            log.info("ff1 ===> " + ff1.toString());
-                                            return ff1;
-                                        });
-                                        // Filtra las cuentas que tengan al cliente
-                                        var b1 = f1.filter(response -> response.getCustomerId().equals(e.getCustomerId()));
-                                        var f2 = b1.map(ff2 -> {
-                                            log.info("ff2 ===> " + ff2.toString());
-                                            return ff2;
-                                        });
-                                        // Filtra las cuentas que tengan el producto
-                                        var c1 = f2.filter(response -> response.getProductId().equals(e.getProductId()));
-                                        var f3 = c1.map(ff3 -> {
-                                            log.info("ff3 ===> " + ff3.toString());
-                                            return ff3;
-                                        });
-                                        // Devolvemos cuanto queda
-                                        var d1 = f3.count();
-                                        var f4 = d1.map(ff4 -> {
-                                            log.info("ff4 ===> " + ff4.toString());
-                                            return ff4;
-                                        });
-                                        var e1 = f4.flatMap(count -> {
-                                                    if (count.compareTo(0L) == 0) {
-                                                        return repository.save(mapper.toEntity(e))
+                            // TIENE YA UNA TARJETA DE CREDITO?
+                            return this.validatedHaveCreditCard(f.getT1().getId())
+                                    .flatMap(
+                                            count ->
+                                                request.flatMap(e -> {
+                                                    if(e.getMinAmount().equals(0.0)) {
+                                                        return repository.save(PassiveProductFactory.build(e, f.getT2().getProductSubType()))
                                                                 .map(mapper::toResponse);
                                                     }
-                                                    log.info("Devolvemos count == " + count);
                                                     return Mono.error(RuntimeException::new);
-                                                });
-                                        return e1;
-                                    }
-                            );
+                                                })
+                                    );
+                            // Cuenta corriente sin comisión de mantenimiento
                         }
+                        return Mono.error(RuntimeException::new);
+                    }
+                    // SI CUSTOMER ES PERSONAL
+                    if (f.getT1().getCustomerType().equals(CustomerType.PERSONAL)) {
+                        // SI NO ES VIP
+                        if (Objects.isNull(f.getT1().getSubType())) {
+                            log.info("Entramos con un producto pasivo y cliente personal");
+                            return request.flatMap(e -> savePersonalPassiveProduct(e, f.getT2().getProductSubType()));
+                        }
+                        // SINO, SI ES VIP
                         else if (f.getT1().getSubType().equals(CustomerSubType.VIP)) {
-                            // Debe tener una tarjeta de credito
-                            // cuenta de ahorro con monto minimo de promedio cada mes
+                            //  SOLICITA UNA CUENTA DE AHORRO
+                            if (f.getT2().getProductSubType().equals(ProductSubType.SAVING)) {
+                                // DEBE TENER MINIMO UNA TARJETA DE CREDITO
+                                return this.validatedHaveCreditCard(f.getT1().getId())
+                                        .flatMap(
+                                                count ->
+                                                        request.flatMap(e -> {
+                                                            if(e.getMinAmount().equals(0.0)) return Mono.error(RuntimeException::new);
+                                                            return this.savePersonalPassiveProduct(e, f.getT2().getProductSubType());
+                                                        })
+                                        )
+                                        .switchIfEmpty(Mono.error(RuntimeException::new));
+                            }
+                            // SINO , SI NO SOLICITA CUENTA DE AHORRO
+                            return request.flatMap(e -> this.savePersonalPassiveProduct(e, f.getT2().getProductSubType()));
                         }
-
+                        return Mono.error(RuntimeException::new);
                     }
                     return Mono.error(RuntimeException::new);
                 })
@@ -146,5 +154,34 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
         log.info("====> CustomerPassiveProductService: printDebug");
         log.info("====> CustomerPassiveProductService: Request ==> " + request.toString());
         return request;
+    }
+
+    public Mono<CustomerPassiveProductResponse> savePersonalPassiveProduct(CustomerPassiveProductRequest request, ProductSubType productSubType) {
+        return repository.findAll()
+                // Filtra las cuentas que tengan al cliente
+                .filter(response -> response.getCustomerId().equals(request.getCustomerId()))
+                // Filtra las cuentas que tengan el producto
+                .filter(response -> response.getProductId().equals(request.getProductId()))
+                // Devolvemos cuanto queda
+                .count()
+                .filter(e -> e.compareTo(0L) != 0)
+                .flatMap(count -> repository.save(PassiveProductFactory.build(request, productSubType))
+                        .flatMap(repository::save)
+                        .map(mapper::toResponse)
+                );
+    }
+
+    public Mono<Long> validatedHaveCreditCard(String customerId) {
+        return activeRepository.findAll()
+                // FILTRA LAS CUENTAS ACTIVAS DEL CUSTOMER
+                .filter(response -> response.getCustomerId().equals(customerId))
+                // TRAE LOS PRODUCTOS DEL CUSTOMER
+                .flatMap(response -> productRepository.getById(response.getProductId()))
+                // FILTRA LOS PRODUCTOS QUE SON TARJETAS
+                .filter(response -> response.getProductSubType().equals(ProductSubType.CREDITCARD))
+                // CUENTA CUANTAS TARJETAS TIENE
+                .count()
+                // FILTRA SI TIENE MAS DE UNA TARJETA
+                .filter(e -> e.compareTo(1L) >= 0);
     }
 }
