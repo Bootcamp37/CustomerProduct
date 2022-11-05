@@ -26,8 +26,8 @@ public class ProductRepository {
     ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory;
 
     public Mono<ProductResponse> getById(@NotNull String idProduct) {
-        log.debug("====> ProductRepository: GetById");
-        log.debug("====> Llamada: " + urlProduct + path + idProduct);
+        log.info("====> ProductRepository: GetById");
+        log.info("====> Llamada: " + urlProduct + path + idProduct);
         WebClient webClientProduct = WebClient.builder().baseUrl(urlProduct).build();
         return webClientProduct.get()
                 .uri(path + "{id}", idProduct)

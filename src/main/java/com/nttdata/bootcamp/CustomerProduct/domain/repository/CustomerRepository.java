@@ -26,8 +26,8 @@ public class CustomerRepository {
     ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory;
 
     public Mono<CustomerResponse> getById(@NotNull String idCustomer) {
-        log.debug("====> CustomerRepository: GetById");
-        log.debug("====> Llamada: " + urlCustomer + path + idCustomer);
+        log.info("====> CustomerRepository: GetById");
+        log.info("====> Llamada: " + urlCustomer + path + idCustomer);
         WebClient webClientCustomer = WebClient.builder().baseUrl(urlCustomer).build();
         return webClientCustomer.get()
                 .uri(path + "{id}", idCustomer)

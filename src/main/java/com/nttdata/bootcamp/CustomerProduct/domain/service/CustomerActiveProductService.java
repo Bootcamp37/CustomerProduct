@@ -27,14 +27,14 @@ public class CustomerActiveProductService implements ICustomerActiveProductServi
 
     @Override
     public Flux<CustomerActiveProductResponse> getAll() {
-        log.debug("====> CustomerActiveProductService: GetAll");
+        log.info("====> CustomerActiveProductService: GetAll");
         return repository.findAll()
                 .map(mapper::toResponse);
     }
 
     @Override
     public Mono<CustomerActiveProductResponse> getById(String id) {
-        log.debug("====> CustomerActiveProductService: GetById");
+        log.info("====> CustomerActiveProductService: GetById");
         return repository.findById(id)
                 .map(mapper::toResponse)
                 .switchIfEmpty(Mono.error(RuntimeException::new));
@@ -42,7 +42,7 @@ public class CustomerActiveProductService implements ICustomerActiveProductServi
 
     @Override
     public Mono<CustomerActiveProductResponse> save(Mono<CustomerActiveProductRequest> request) {
-        log.debug("====> CustomerActiveProductService: Save");
+        log.info("====> CustomerActiveProductService: Save");
         return request.map(this::printDebug)
                 .flatMap(serviceRepository::getCustomerProduct)
                 .map(Tool::printLog)
@@ -55,7 +55,7 @@ public class CustomerActiveProductService implements ICustomerActiveProductServi
 
     @Override
     public Mono<CustomerActiveProductResponse> update(Mono<CustomerActiveProductRequest> request, String id) {
-        log.debug("====> CustomerActiveProductService: Update");
+        log.info("====> CustomerActiveProductService: Update");
         return request.map(this::printDebug)
                 .flatMap(serviceRepository::getCustomerProduct)
                 .flatMap(item -> repository.findById(id)
@@ -72,7 +72,7 @@ public class CustomerActiveProductService implements ICustomerActiveProductServi
 
     @Override
     public Mono<CustomerActiveProductResponse> delete(String id) {
-        log.debug("====> CustomerActiveProductService: Delete");
+        log.info("====> CustomerActiveProductService: Delete");
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(RuntimeException::new))
                 .flatMap(deleteCustomer -> repository.delete(deleteCustomer)
@@ -80,8 +80,8 @@ public class CustomerActiveProductService implements ICustomerActiveProductServi
     }
 
     public CustomerActiveProductRequest printDebug(CustomerActiveProductRequest request) {
-        log.debug("====> CustomerActiveProductService: printDebug");
-        log.debug("====> CustomerActiveProductService: Request ==> " + request.toString());
+        log.info("====> CustomerActiveProductService: printDebug");
+        log.info("====> CustomerActiveProductService: Request ==> " + request.toString());
         return request;
     }
 }

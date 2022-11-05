@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,14 +30,14 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
 
     @Override
     public Flux<CustomerPassiveProductResponse> getAll() {
-        log.debug("====> CustomerPassiveProductService: GetAll");
+        log.info("====> CustomerPassiveProductService: GetAll");
         return repository.findAll()
                 .map(mapper::toResponse);
     }
 
     @Override
     public Mono<CustomerPassiveProductResponse> getById(String id) {
-        log.debug("====> CustomerPassiveProductService: GetById");
+        log.info("====> CustomerPassiveProductService: GetById");
         return repository.findById(id)
                 .map(mapper::toResponse)
                 .switchIfEmpty(Mono.error(RuntimeException::new));
@@ -43,40 +45,54 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
 
     @Override
     public Mono<CustomerPassiveProductResponse> save(Mono<CustomerPassiveProductRequest> request) {
-        log.debug("====> CustomerPassiveProductService: Save");
+        log.info("====> CustomerPassiveProductService: Save");
         return request.map(this::printDebug)
                 .flatMap(serviceRepository::getCustomerProduct)
                 .flatMap(f -> {
                     // Cliente Empresarial
                     if (f.getT1().getCustomerType().equals(CustomerType.BUSINESS)) {
-                        if (f.getT1().getSubType().equals(CustomerSubType.PYME)) {
-                            // Vaidar que tenga una tarjeta de credito con el banco
-                            // Cuenta corriente sin comisión de mantenimiento
-                        } else {
+                        if (Objects.isNull(f.getT1().getSubType())) {
                             log.info("Entramos con un producto pasivo y cliente empresarial");
                             return request.map(mapper::toEntity)
                                     .flatMap(repository::save)
                                     .map(mapper::toResponse);
                         }
+                        else if (f.getT1().getSubType().equals(CustomerSubType.PYME)) {
+                            // Vaidar que tenga una tarjeta de credito con el banco
+                            // Cuenta corriente sin comisión de mantenimiento
+                        }
+
                     }
                     // Cliente Personal
                     if (f.getT1().getCustomerType().equals(CustomerType.PERSONAL)) {
-                        if (f.getT1().getSubType().equals(CustomerSubType.VIP)) {
-                            // Debe tener una tarjeta de credito
-                            // cuenta de ahorro con monto minimo de promedio cada mes
-                        } else {
+                        if(Objects.isNull(f.getT1().getSubType())) {
                             log.info("Entramos con un producto pasivo y cliente personal");
-                            // Recupera si el cliente ya esta registrado con ese tipo de producto
                             return request.flatMap(
                                     e -> {
-                                        return repository.findAll()
-                                                // Filtra las cuentas que tengan al cliente
-                                                .filter(response -> response.getCustomerId().equals(e.getCustomerId()))
-                                                // Filtra las cuentas que tengan el producto
-                                                .filter(response -> response.getProductId().equals(e.getProductId()))
-                                                // Devolvemos cuanto queda
-                                                .count()
-                                                .flatMap(count -> {
+                                        var a1 = repository.findAll();
+                                        var f1 = a1.map(ff1 -> {
+                                            log.info("ff1 ===> " + ff1.toString());
+                                            return ff1;
+                                        });
+                                        // Filtra las cuentas que tengan al cliente
+                                        var b1 = f1.filter(response -> response.getCustomerId().equals(e.getCustomerId()));
+                                        var f2 = b1.map(ff2 -> {
+                                            log.info("ff2 ===> " + ff2.toString());
+                                            return ff2;
+                                        });
+                                        // Filtra las cuentas que tengan el producto
+                                        var c1 = f2.filter(response -> response.getProductId().equals(e.getProductId()));
+                                        var f3 = c1.map(ff3 -> {
+                                            log.info("ff3 ===> " + ff3.toString());
+                                            return ff3;
+                                        });
+                                        // Devolvemos cuanto queda
+                                        var d1 = f3.count();
+                                        var f4 = d1.map(ff4 -> {
+                                            log.info("ff4 ===> " + ff4.toString());
+                                            return ff4;
+                                        });
+                                        var e1 = f4.flatMap(count -> {
                                                     if (count.compareTo(0L) == 0) {
                                                         return repository.save(mapper.toEntity(e))
                                                                 .map(mapper::toResponse);
@@ -84,8 +100,13 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
                                                     log.info("Devolvemos count == " + count);
                                                     return Mono.error(RuntimeException::new);
                                                 });
+                                        return e1;
                                     }
                             );
+                        }
+                        else if (f.getT1().getSubType().equals(CustomerSubType.VIP)) {
+                            // Debe tener una tarjeta de credito
+                            // cuenta de ahorro con monto minimo de promedio cada mes
                         }
 
                     }
@@ -96,7 +117,7 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
 
     @Override
     public Mono<CustomerPassiveProductResponse> update(Mono<CustomerPassiveProductRequest> request, String id) {
-        log.debug("====> CustomerPassiveProductService: Update");
+        log.info("====> CustomerPassiveProductService: Update");
         return request.map(this::printDebug)
                 .map(serviceRepository::getCustomerProduct)
                 .flatMap(item ->
@@ -114,7 +135,7 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
 
     @Override
     public Mono<CustomerPassiveProductResponse> delete(String id) {
-        log.debug("====> CustomerPassiveProductService: Delete");
+        log.info("====> CustomerPassiveProductService: Delete");
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(RuntimeException::new))
                 .flatMap(deleteCustomerPassiveProduct -> repository.delete(deleteCustomerPassiveProduct)
@@ -122,8 +143,8 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
     }
 
     public CustomerPassiveProductRequest printDebug(CustomerPassiveProductRequest request) {
-        log.debug("====> CustomerPassiveProductService: printDebug");
-        log.debug("====> CustomerPassiveProductService: Request ==> " + request.toString());
+        log.info("====> CustomerPassiveProductService: printDebug");
+        log.info("====> CustomerPassiveProductService: Request ==> " + request.toString());
         return request;
     }
 }

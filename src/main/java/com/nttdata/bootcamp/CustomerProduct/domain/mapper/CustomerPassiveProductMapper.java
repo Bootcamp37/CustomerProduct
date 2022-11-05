@@ -25,7 +25,7 @@ public class CustomerPassiveProductMapper implements ICustomerPassiveProductMapp
 
     @Override
     public CustomerPassiveProduct toEntity(@NotNull CustomerPassiveProductRequest request) {
-        log.debug("====> CustomerPassiveProductMapper: ToEntity");
+        log.info("====> CustomerPassiveProductMapper: ToEntity");
         CustomerPassiveProduct customerPassiveProduct = new CustomerPassiveProduct();
         BeanUtils.copyProperties(request, customerPassiveProduct);
         return customerPassiveProduct;
@@ -33,7 +33,7 @@ public class CustomerPassiveProductMapper implements ICustomerPassiveProductMapp
 
     @Override
     public CustomerPassiveProductResponse toResponse(@NotNull CustomerPassiveProduct customerPassiveProduct) {
-        log.debug("====> CustomerPassiveProductMapper: ToResponse");
+        log.info("====> CustomerPassiveProductMapper: ToResponse");
         CustomerPassiveProductResponse customerPassiveProductResponse = new CustomerPassiveProductResponse();
         BeanUtils.copyProperties(customerPassiveProduct, customerPassiveProductResponse);
         customerPassiveProductResponse.setCustomerUrl(customerDomain + customerPath + customerPassiveProduct.getCustomerId());

@@ -25,7 +25,7 @@ public class CustomerActiveProductMapper implements ICustomerActiveProductMapper
 
     @Override
     public CustomerActiveProduct toEntity(@NotNull CustomerActiveProductRequest request) {
-        log.debug("====> CustomerActiveProductMapper: ToEntity");
+        log.info("====> CustomerActiveProductMapper: ToEntity");
         CustomerActiveProduct customerActiveProduct = new CustomerActiveProduct();
         BeanUtils.copyProperties(request, customerActiveProduct);
         return customerActiveProduct;
@@ -33,7 +33,7 @@ public class CustomerActiveProductMapper implements ICustomerActiveProductMapper
 
     @Override
     public CustomerActiveProductResponse toResponse(@NotNull CustomerActiveProduct customerActiveProduct) {
-        log.debug("====> CustomerActiveProductMapper: ToResponse");
+        log.info("====> CustomerActiveProductMapper: ToResponse");
         CustomerActiveProductResponse customerActiveProductResponse = new CustomerActiveProductResponse();
         BeanUtils.copyProperties(customerActiveProduct, customerActiveProductResponse);
         customerActiveProductResponse.setCustomerUrl(customerDomain + customerPath + customerActiveProduct.getCustomerId());
