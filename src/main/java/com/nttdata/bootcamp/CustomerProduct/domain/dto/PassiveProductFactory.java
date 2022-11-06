@@ -2,7 +2,6 @@ package com.nttdata.bootcamp.CustomerProduct.domain.dto;
 
 import com.nttdata.bootcamp.CustomerProduct.domain.entity.CustomerPassiveProduct;
 import com.nttdata.bootcamp.CustomerProduct.domain.entity.ProductSubType;
-import reactor.core.publisher.Mono;
 
 public class PassiveProductFactory {
     public static CustomerPassiveProduct build(CustomerPassiveProductRequest passiveProduct, ProductSubType productSubType) {
@@ -26,8 +25,8 @@ public class PassiveProductFactory {
         customerPassiveProduct.setCustomerId(passiveProduct.getCustomerId());
         customerPassiveProduct.setProductId(passiveProduct.getProductId());
         customerPassiveProduct.setAmount(passiveProduct.getAmount());
-        customerPassiveProduct.setMaxMovementFree(0);
-        customerPassiveProduct.setCommission(0.0);
+        customerPassiveProduct.setMaxMovementFree(passiveProduct.getMaxMovementFree());
+        customerPassiveProduct.setCommission(passiveProduct.getCommission());
         return customerPassiveProduct;
     }
 

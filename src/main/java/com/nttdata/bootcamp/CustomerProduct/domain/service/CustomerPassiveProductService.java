@@ -3,7 +3,6 @@ package com.nttdata.bootcamp.CustomerProduct.domain.service;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerPassiveProductRequest;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.CustomerPassiveProductResponse;
 import com.nttdata.bootcamp.CustomerProduct.domain.dto.PassiveProductFactory;
-import com.nttdata.bootcamp.CustomerProduct.domain.entity.CustomerPassiveProduct;
 import com.nttdata.bootcamp.CustomerProduct.domain.entity.CustomerSubType;
 import com.nttdata.bootcamp.CustomerProduct.domain.entity.CustomerType;
 import com.nttdata.bootcamp.CustomerProduct.domain.entity.ProductSubType;
@@ -79,13 +78,13 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
                             return this.validatedHaveCreditCard(f.getT1().getId())
                                     .flatMap(
                                             count ->
-                                                request.flatMap(e -> {
-                                                    if(e.getMinAmount().equals(0.0)) {
-                                                        return repository.save(PassiveProductFactory.build(e, f.getT2().getProductSubType()))
-                                                                .map(mapper::toResponse);
-                                                    }
-                                                    return Mono.error(RuntimeException::new);
-                                                })
+                                                    request.flatMap(e -> {
+                                                        if (e.getMinAmount().equals(0.0)) {
+                                                            return repository.save(PassiveProductFactory.build(e, f.getT2().getProductSubType()))
+                                                                    .map(mapper::toResponse);
+                                                        }
+                                                        return Mono.error(RuntimeException::new);
+                                                    })
                                     );
                             // Cuenta corriente sin comisión de mantenimiento
                         }
@@ -107,7 +106,9 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
                                         .flatMap(
                                                 count ->
                                                         request.flatMap(e -> {
-                                                            if(e.getMinAmount().equals(0.0)) return Mono.error(RuntimeException::new);
+                                                            if (e.getMinAmount().equals(0.0)) {
+                                                                return Mono.error(RuntimeException::new);
+                                                            }
                                                             return this.savePersonalPassiveProduct(e, f.getT2().getProductSubType());
                                                         })
                                         )
@@ -164,7 +165,11 @@ public class CustomerPassiveProductService implements ICustomerPassiveProductSer
                 .filter(response -> response.getProductId().equals(request.getProductId()))
                 // Devolvemos cuanto queda
                 .count()
-                .filter(e -> e.compareTo(0L) != 0)
+                .map(e -> {
+                    log.info(" 4 ===> " + e.toString());
+                    return e;
+                })
+                .filter(e -> e.compareTo(0L) == 0)
                 .flatMap(count -> repository.save(PassiveProductFactory.build(request, productSubType))
                         .flatMap(repository::save)
                         .map(mapper::toResponse)
