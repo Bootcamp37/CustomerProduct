@@ -5,10 +5,14 @@ spring:
     name: customerProduct-service
   config:
     import:
-      - optional:configserver:http://ms-configserver:8888
+      - optional:configserver:https://ms-config.azurewebsites.net
   data:
     mongodb:
-      uri: mongodb://db_customerProduct:27017/db_customerProduct
+      uri: mongodb+srv://admin:5K8yj70q4RpuiBSE@bootcamp37.anglhbu.mongodb.net/db_customerProduct
+eureka:
+  client:
+    service-url:
+      defaultZone: https://ms-discovery.azurewebsites.net/eureka/
 management:
   endpoint:
     web:
@@ -17,9 +21,9 @@ management:
 message:
   path-customerProductActives: /api/v1/customerActivesProducts
   path-customerProductPassives: /api/v1/customerPassivesProducts
-  path-customerDomain: http://ms-customer:8080
+  path-customerDomain: https://ms-customer-bc37.azurewebsites.net
   path-customerResponse: /api/v1/customers/
-  path-productDomain: http://ms-product:8080
+  path-productDomain: https://ms-product-bc37.azurewebsites.net
   path-productResponse: /api/v1/products/
 resilience4j:
   circuitbreaker:
