@@ -41,16 +41,16 @@ public class CustomerRepository {
     log.info("====> Llamada: " + urlCustomer + path + idCustomer);
     WebClient webClientCustomer = WebClient.builder().baseUrl(urlCustomer).build();
     return webClientCustomer.get()
-          .uri(path + "{id}", idCustomer)
+          .uri(path + idCustomer)
           .accept(MediaType.APPLICATION_JSON)
           .retrieve()
           .onStatus(HttpStatus::is4xxClientError, clientResponse ->
                 Mono.error(new Exception("Error 400")))
           .onStatus(HttpStatus::is5xxServerError, clientResponse ->
                 Mono.error(new Exception("Error 500")))
-          .bodyToMono(CustomerResponse.class)
+          .bodyToMono(CustomerResponse.class)/*
           .transform(it -> reactiveCircuitBreakerFactory.create(CUSTOMER_SERVICE)
                 .run(it, throwable -> Mono.just(new CustomerResponse()))
-          );
+          )*/;
   }
 }

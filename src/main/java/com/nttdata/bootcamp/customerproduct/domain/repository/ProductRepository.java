@@ -49,9 +49,9 @@ public class ProductRepository {
                 Mono.error(new Exception("Error 400")))
           .onStatus(HttpStatus::is5xxServerError, clientResponse ->
                 Mono.error(new Exception("Error 500")))
-          .bodyToMono(ProductResponse.class)
+          .bodyToMono(ProductResponse.class)/*
           .transform(it -> reactiveCircuitBreakerFactory.create(PRODUCT_SERVICE)
                 .run(it, throwable -> Mono.just(new ProductResponse()))
-          );
+          )*/;
   }
 }

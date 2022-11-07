@@ -39,7 +39,15 @@ public class ServiceRepository {
         ProductType productType) {
     log.info("====> ProductRepository: Get");
     return customerRepository.getById(request.getCustomerId())
-          .zipWith(productRepository.getById(request.getProductId()))
+          .map(e -> {
+            log.info(" ====> e1 = " + e.toString());
+            return e;
+          })
+          .zipWith(productRepository.getById(request.getProductId())
+                .map(e -> {
+                  log.info(" ====> e2 = " + e.toString());
+                  return e;
+                }))
           .filter(tupla -> tupla.getT2().getProductType().equals(productType));
   }
 
